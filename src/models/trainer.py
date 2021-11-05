@@ -291,6 +291,7 @@ class Trainer(object):
                         pred = []
                         if (cal_lead):
                             selected_ids = [list(range(batch.clss.size(1)))] * batch.batch_size
+                        print(selected_ids)
                         for i, idx in enumerate(selected_ids):
                             _pred = []
                             if(len(batch.src_str[i])==0):

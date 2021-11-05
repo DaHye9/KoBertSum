@@ -177,7 +177,6 @@ def greedy_selection(doc_sent_list, abstract_sent_list, summary_size):
     reference_1grams = _get_word_ngrams(1, [abstract])
     evaluated_2grams = [_get_word_ngrams(2, [sent]) for sent in sents]
     reference_2grams = _get_word_ngrams(2, [abstract])
-
     selected = []
     for s in range(summary_size):
         cur_max_rouge = max_rouge
@@ -200,7 +199,6 @@ def greedy_selection(doc_sent_list, abstract_sent_list, summary_size):
             return selected
         selected.append(cur_id)
         max_rouge = cur_max_rouge
-
     return selected # sorted(selected)
 
 # 전체 경우의 수 탐색
@@ -208,11 +206,14 @@ def full_selection(doc_sent_list, abstract_sent_list, summary_size=3):
     def _rouge_clean(s):
         return re.sub(r'[^A-Za-z0-9가-힣 ]', '', s)
 
+    summary_size=min(max(int(len(doc_sent_list)/5), 1), 10)
+    print("doc " , len(doc_sent_list), "summary " ,summary_size)
+
     rouge_evaluator = Rouge(
             metrics=["rouge-n", "rouge-l"],
-            max_n=2,
+            max_n=10,
             limit_length=True,
-            length_limit=1000,
+            length_limit=10000,
             length_limit_type="words",
             use_tokenizer=True,
             apply_avg=True,
@@ -220,7 +221,6 @@ def full_selection(doc_sent_list, abstract_sent_list, summary_size=3):
             alpha=0.5,  # Default F1_score
             weight_factor=1.2,
         )
-
     # cleaning and merge [[w,w,w], [w,w,w]] -> [w,w,w, w,w,w] 
     abstract = sum(abstract_sent_list, [])  # [[w,w,w], [w,w,w]] -> [w,w,w, w,w,w] 
     abstract = _rouge_clean(' '.join(abstract))
@@ -232,63 +232,68 @@ def full_selection(doc_sent_list, abstract_sent_list, summary_size=3):
     # print('1 ', selected_idx3_list)
     # if len(selected_idx3_list) == 3:
     #     return selected_idx3_list
-
+    print("src_len=", src_len)
     total_max_rouge_score = 0.0
-    if src_len > 10 or (src_len <= 10 and len(selected_idx3_list) < 2): # greedy
-        for i in range(summary_size - len(selected_idx3_list)):
-
-            #cur_sents_idx3_list = []
-            cur_max_total_rouge_score = 0.0
-            cur_sent_idx = -1
-            for sent_idx, sent in enumerate(doc_sent_list_merged):
-                
-                if sent_idx in selected_idx3_list:
-                    continue
-                temp_idx3_list = selected_idx3_list + [sent_idx]
-                sents_array = np.array(doc_sent_list_merged)[temp_idx3_list]
-                sents_merged = ' '.join(sents_array)
-                #print('temp_idx3_list', temp_idx3_list)
-                # ROUGE1,2,l 합score 계산
-                rouge_scores = rouge_evaluator.get_scores(sents_merged, abstract)
-                total_rouge_score = 0
-                for k, v in rouge_scores.items():
-                    total_rouge_score += v['f']
-                # print('total_rouge_score', total_rouge_score)
-                if total_rouge_score > cur_max_total_rouge_score:
-                    cur_max_total_rouge_score = total_rouge_score
-                    cur_sent_idx = sent_idx
-                  #  print(cur_max_total_rouge_score)
-                   # print(selected_idx3_list)
-            selected_idx3_list.append(cur_sent_idx)
-            # print('-----------------------')
-            total_max_rouge_score = cur_max_total_rouge_score
-    # print('2 ', selected_idx3_list)      
-            
+#    if src_len > 10 or (src_len <= 10 and len(selected_idx3_list) < 3): # greedy
+#        for i in range(summary_size - len(selected_idx3_list)):
+#
+#            #cur_sents_idx3_list = []
+#            cur_max_total_rouge_score = 0.0
+#            cur_sent_idx = -1
+#            for sent_idx, sent in enumerate(doc_sent_list_merged):
+#                
+#                if sent_idx in selected_idx3_list:
+#                    continue
+#                temp_idx3_list = selected_idx3_list + [sent_idx]
+#                sents_array = np.array(doc_sent_list_merged)[temp_idx3_list]
+#                sents_merged = ' '.join(sents_array)
+#                #print('temp_idx3_list', temp_idx3_list)
+#                # ROUGE1,2,l 합score 계산
+#                rouge_scores = rouge_evaluator.get_scores(sents_merged, abstract)
+#                total_rouge_score = 0
+#                for k, v in rouge_scores.items():
+#                    total_rouge_score += v['f']
+#                # print('total_rouge_score', total_rouge_score)
+#                if total_rouge_score > cur_max_total_rouge_score:
+#                    cur_max_total_rouge_score = total_rouge_score
+#                    cur_sent_idx = sent_idx
+#                  #  print(cur_max_total_rouge_score)
+#                   # print(selected_idx3_list)
+#            selected_idx3_list.append(cur_sent_idx)
+#            print(selected_idx3_list)
+#            # print('-----------------------')
+#            total_max_rouge_score = cur_max_total_rouge_score
+#    # print('2 ', selected_idx3_list)      
+#            
     # full
-    sents_idx_perm_list = list(permutations(range(src_len), summary_size)) 
-    sents_idx_list = []
-    for sents_idx_perm in sents_idx_perm_list:
-        if set(sents_idx_perm) & set(selected_idx3_list) == set(selected_idx3_list):
-            sents_idx_list.append(sents_idx_perm)
-
-    for sents_idx in sents_idx_list:
-        sents_array = np.array(doc_sent_list_merged)[list(sents_idx)]
-        sents_merged = ' '.join(sents_array)
-        #print(sents_merged)
-        # print(sents_idx)
-        # print(sents_array)
-
-        # ROUGE1,2,l 합score 계산
-        rouge_scores = rouge_evaluator.get_scores(sents_merged, abstract)
-        total_rouge_score = 0
-        for k, v in rouge_scores.items():
-            total_rouge_score += v['f']
-
-        if total_rouge_score > total_max_rouge_score:
-            total_max_rouge_score = total_rouge_score
-            selected_idx3_list = list(sents_idx)
-    # print('3 ', selected_idx3_list)  
-    return selected_idx3_list #, total_max_rouge_score,  sorted(selected_idx3_list)
+    selected_idx3_list=[-1]*summary_size
+    print(selected_idx3_list)
+#    sents_idx_perm_list = list(permutations(range(src_len), summary_size)) 
+#    sents_idx_list = []
+#    for sents_idx_perm in sents_idx_perm_list:
+#        if set(sents_idx_perm) & set(selected_idx3_list) == set(selected_idx3_list):
+#            sents_idx_list.append(sents_idx_perm)
+#
+#    for sents_idx in sents_idx_list:
+#        sents_array = np.array(doc_sent_list_merged)[list(sents_idx)]
+#        sents_merged = ' '.join(sents_array)
+#        #print(sents_merged)
+#        # print(sents_idx)
+#        # print(sents_array)
+#
+#        # ROUGE1,2,l 합score 계산
+#        rouge_scores = rouge_evaluator.get_scores(sents_merged, abstract)
+#        total_rouge_score = 0
+#        for k, v in rouge_scores.items():
+#            total_rouge_score += v['f']
+#
+#        if total_rouge_score > total_max_rouge_score:
+#            total_max_rouge_score = total_rouge_score
+#            selected_idx3_list = list(sents_idx)
+#    # print('3 ', selected_idx3_list)  
+#    print(selected_idx3_list)
+#    return selected_idx3_list #, total_max_rouge_score,  sorted(selected_idx3_list)
+    return selected_idx3_list
 
 def hashhex(s):
     """Returns a heximal formated SHA1 hash of the input string."""

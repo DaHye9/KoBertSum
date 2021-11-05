@@ -23,11 +23,22 @@ LOG_PREPO_FILE = LOG_DIR + '/preprocessing.log'
 MODEL_DIR = f'{PROJECT_DIR}/{PROBLEM}/models' 
 RESULT_DIR = f'{PROJECT_DIR}/{PROBLEM}/results' 
 
+def get_csv(json, csv):
+    df=pd.read_json(json, lines=True)
+    df.drop(['media','article_original','abstractive','extractive'], axis=1, inplace=True)
+    print(json,csv,df)
+    df.to_csv(csv)
+
 # python make_submission.py result_1209_1236_step_7000.candidate
 if __name__ == '__main__':
     # test set
-    with open(RAW_DATA_DIR + '/extractive_test_v2.jsonl', 'r') as json_file:
+    json_path=RAW_DATA_DIR + '/mag1.valid.jsonl'
+    csv_path=RAW_DATA_DIR + '/mag1.valid.jsonl.csv'
+
+    with open(json_path, 'r') as json_file:
         json_list = list(json_file)
+
+    #get_csv(json_path, csv_path)
 
     tests = []
     for json_str in json_list:
@@ -50,7 +61,7 @@ if __name__ == '__main__':
 
     result_df = pd.merge(test_df, pd.DataFrame(test_pred_list), how="left", left_index=True, right_index=True)
     result_df['summary'] = result_df.apply(lambda row: '\n'.join(list(np.array(row['article_original'])[row['sum_sents_idxes']])) , axis=1)
-    submit_df = pd.read_csv(RAW_DATA_DIR + '/extractive_sample_submission_v2.csv')
+    submit_df = pd.read_csv(csv_path)
     submit_df.drop(['summary'], axis=1, inplace=True)
 
     print(result_df['id'].dtypes)

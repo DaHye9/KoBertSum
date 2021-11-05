@@ -1,3 +1,5 @@
+
+
 import os
 import sys
 import time
@@ -33,8 +35,8 @@ if __name__ == '__main__':
     parser.add_argument("-test_from", default=None, type=str)
     args = parser.parse_args()
 
-    # now = time.strftime('%m%d_%H%M')
-    now = "1209_1236"
+    now = time.strftime('%m%d_%H%M')
+    #now = "1209_1236"
 
     # python main.py -task install
     if args.task == 'install':
@@ -111,6 +113,7 @@ if __name__ == '__main__':
         
         model_folder, model_name = args.test_from.rsplit('/', 1)
         model_name = model_name.split('_', 1)[1].split('.')[0]
+        print(model_folder, model_name)
         os.system(f"""\
             python train.py -task ext -mode test \
             -test_from {MODEL_DIR}/{args.test_from} \

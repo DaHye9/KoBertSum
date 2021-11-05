@@ -204,8 +204,7 @@ class Trainer(object):
             valid_iter: validate data iterator
         Returns:
             :obj:`nmt.Statistics`: validation loss statistics
-        """
-
+        """\
         # Set model in validating mode.
         def _get_ngrams(n, text):
             ngram_set = set()
@@ -263,6 +262,7 @@ class Trainer(object):
                             selected_ids = np.argsort(-sent_scores, 1)
                             # print(selected_ids)
                         # selected_ids = np.sort(selected_ids,1)
+                        print(selected_ids)
                         for i, idx in enumerate(selected_ids):
                             _pred = []
                             _pred_idx = []
@@ -272,15 +272,17 @@ class Trainer(object):
                                 if (j >= len(batch.src_str[i])):
                                     continue
                                 candidate = batch.src_str[i][j].strip()
+                                print("candidate:"+candidate)
                                 if (self.args.block_trigram):
                                     if (not _block_tri(candidate, _pred)):
+                                        print("AA")
                                         _pred.append(candidate)
                                         _pred_idx.append(j)
                                 else:
                                     _pred.append(candidate)
                                     _pred_idx.append(j)
-
-                                if ((not cal_oracle) and (not self.args.recall_eval) and len(_pred) == 3):
+                                print(_block_tri(candidate, _pred))
+                                if ((not cal_oracle) and (not self.args.recall_eval) and len(_pred) == 5):
                                     break
                             
                             if len(_pred) < 3:
@@ -291,7 +293,7 @@ class Trainer(object):
                                 _pred = np.array(batch.src_str[i])[selected_ids[i][:3]]
                                 print(_pred)
 
-
+                            print(_pred)
                             _pred = '<q>'.join(_pred)
                             if (self.args.recall_eval):
                                 _pred = ' '.join(_pred.split()[:len(batch.tgt_str[i].split())])

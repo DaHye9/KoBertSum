@@ -79,9 +79,11 @@ def load_dataset(args, corpus_type, shuffle):
         logger.info('Loading %s dataset from %s, number of examples: %d' %
                     (corpus_type, pt_file, len(dataset)))
         return dataset
+    print(corpus_type)
 
     # Sort the glob output by file name (by increasing indexes).
-    pts = sorted(glob.glob(args.bert_data_path + '/' + corpus_type + '.[0-9]*.pt'))
+    pts = sorted(glob.glob(args.bert_data_path + '/' + '*.pt'))
+    print(args.bert_data_path, corpus_type)
     print(pts)
     if pts:
         if (shuffle):
@@ -91,9 +93,8 @@ def load_dataset(args, corpus_type, shuffle):
             yield _lazy_dataset_loader(pt, corpus_type)
     else:
         # Only one inputters.*Dataset, simple!
-        pt = args.bert_data_path + '/' + corpus_type + '.pt'
+        pt = args.bert_data_path + '/' + '*.pt'
         yield _lazy_dataset_loader(pt, corpus_type)
-
 
 def abs_batch_size_fn(new, count):
     src, tgt = new[0], new[1]
