@@ -55,9 +55,9 @@ if __name__ == '__main__':
         sum_sents_text, sum_sents_idxes = line.rsplit(r'[', maxsplit=1)
         sum_sents_text = sum_sents_text.replace('<q>', '\n')
         sum_sents_idx_list = [ int(str.strip(i)) for i in sum_sents_idxes[:-2].split(', ')]
-        test_pred_list.append({'sum_sents_tokenized': sum_sents_text, 
-                            'sum_sents_idxes': sum_sents_idx_list
-                            })
+        test_pred_list.append({'sum_sents_tokenized': sum_sents_text})
+                            #'sum_sents_idxes': sum_sents_idx_list
+                            #})
 
     result_df = pd.merge(test_df, pd.DataFrame(test_pred_list), how="left", left_index=True, right_index=True)
     result_df['summary'] = result_df.apply(lambda row: '\n'.join(list(np.array(row['article_original'])[row['sum_sents_idxes']])) , axis=1)

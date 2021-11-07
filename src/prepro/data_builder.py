@@ -196,7 +196,7 @@ def greedy_selection(doc_sent_list, abstract_sent_list, summary_size):
                 cur_max_rouge = rouge_score
                 cur_id = i
         if (cur_id == -1):
-            return selected
+            return sorted(selected)
         selected.append(cur_id)
         max_rouge = cur_max_rouge
     return selected # sorted(selected)
@@ -206,7 +206,7 @@ def full_selection(doc_sent_list, abstract_sent_list, summary_size=3):
     def _rouge_clean(s):
         return re.sub(r'[^A-Za-z0-9가-힣 ]', '', s)
 
-    summary_size=min(max(int(len(doc_sent_list)/5), 1), 10)
+    summary_size=min(max(int(len(doc_sent_list)/10), 1), 10)
     print("doc " , len(doc_sent_list), "summary " ,summary_size)
 
     rouge_evaluator = Rouge(

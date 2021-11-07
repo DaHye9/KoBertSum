@@ -261,8 +261,11 @@ class Trainer(object):
                             # print(sent_scores)
                             selected_ids = np.argsort(-sent_scores, 1)
                             # print(selected_ids)
-                        # selected_ids = np.sort(selected_ids,1)
-                        print(selected_ids)
+                        #selected_ids = np.sort(selected_ids,1)
+                        selected_size=int(max(selected_ids.size / 4, 1))
+                        print(selected_size)
+                        selected_ids=np.array([selected_ids[0, :selected_size]])
+                        selected_ids=np.sort(selected_ids)
                         for i, idx in enumerate(selected_ids):
                             _pred = []
                             _pred_idx = []
@@ -275,7 +278,6 @@ class Trainer(object):
                                 print("candidate:"+candidate)
                                 if (self.args.block_trigram):
                                     if (not _block_tri(candidate, _pred)):
-                                        print("AA")
                                         _pred.append(candidate)
                                         _pred_idx.append(j)
                                 else:
